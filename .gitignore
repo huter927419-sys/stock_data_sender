@@ -1,0 +1,25 @@
+# Build results
+bin/
+obj/
+Backup/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.ncb
+*.opt
+*.plg
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Claude Code
+.claude/
+
+# Test files
+*.log
