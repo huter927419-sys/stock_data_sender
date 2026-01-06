@@ -726,6 +726,71 @@ namespace StockDataMQClient
         }
         
         /// <summary>
+        /// 初始化日线数据自动同步
+        /// </summary>
+        private void InitializeDailyDataAutoSync()
+        {
+            try
+            {
+                // 初始化自动同步，传入请求日线数据的回调
+                DailyDataAutoSync.Instance.Initialize(() =>
+                {
+                    // 在UI线程中执行日线数据请求
+                    if (this.InvokeRequired)
+                    {
+                        this.Invoke(new Action(() => RequestDailyDataForAutoSync()));
+                    }
+                    else
+                    {
+                        RequestDailyDataForAutoSync();
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(string.Format("初始化日线数据自动同步失败: {0}", ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// 自动同步时请求日线数据
+        /// </summary>
+        private void RequestDailyDataForAutoSync()
+        {
+            try
+            {
+                if (instance == 0)
+                {
+                    Logger.Instance.Warning("DLL未连接，无法自动同步日线数据");
+                    return;
+                }
+
+                if (dataCollector == null)
+                {
+                    Logger.Instance.Warning("数据采集器未初始化，无法自动同步日线数据");
+                    return;
+                }
+
+                // 请求全部股票的日线数据（参数3=全部数据）
+                Logger.Instance.Info("【自动同步】正在请求日线数据（全部股票，全部数据）...");
+                bool success = dataCollector.RequestDailyData("", 3);
+
+                if (success)
+                {
+                    Logger.Instance.Success("【自动同步】日线数据请求已发送");
+                }
+                else
+                {
+                    Logger.Instance.Warning("【自动同步】日线数据请求失败");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.Error(string.Format("【自动同步】请求日线数据异常: {0}", ex.Message));
+            }
+        }
+
+        /// <summary>
         /// 初始化数据接收监控定时器
         /// </summary>
         private void InitializeDataReceiveMonitor()
@@ -1837,7 +1902,10 @@ namespace StockDataMQClient
                 Logger.Instance.Success("DLL连接成功，数据接收已自动开启");
                 Logger.Instance.Info("基本数据（股票名称/代码）将自动接收");
                 Logger.Instance.Info("实时行情数据将自动接收");
-                
+
+                // 初始化日线数据自动同步（传入请求日线数据的回调）
+                InitializeDailyDataAutoSync();
+
                 UpdateStatusLabel();
                 
                 // 更新菜单项状态
@@ -2112,8 +2180,15 @@ namespace StockDataMQClient
                     }
                     catch { }
                 }
-                
-                // 9. 清理日志资源（最后执行）
+
+                // 9. 清理日线数据自动同步资源
+                try
+                {
+                    DailyDataAutoSync.Instance.Cleanup();
+                }
+                catch { }
+
+                // 10. 清理日志资源（最后执行）
                 try
                 {
                     Logger.Instance.Cleanup();

@@ -86,6 +86,7 @@
     <Compile Include="src\Core\DllAnalyzer.cs" />
     <Compile Include="src\Core\DataQueue.cs" />
     <Compile Include="src\Core\F10DataManager.cs" />
+    <Compile Include="src\Core\DailyDataAutoSync.cs" />
 
     <!-- Data Processing Layer -->
     <Compile Include="src\DataProcessing\DataCollector.cs" />
